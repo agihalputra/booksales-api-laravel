@@ -1,18 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genres</title>
+    <title>Genres List</title>
 </head>
 <body>
-    <h1>Daftar Genre Buku</h1>
-
-    @foreach ($genres as $item)
-        <ul>
-            <li><strong>Nama:</strong> {{ $item['name'] }}</li>
-            <li><strong>Deskripsi:</strong> {{ $item['description'] }}</li>
-        </ul>
-    @endforeach
+    <h1>Daftar Genre</h1>
+    <ul>
+        @foreach ($genres as $genre)
+            <li>
+                <strong>{{ $genre->name }}</strong> - {{ $genre->description }}
+            </li>
+        @endforeach
+    </ul>
 </body>
 </html>

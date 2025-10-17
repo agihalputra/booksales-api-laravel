@@ -7,30 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 
 class Genre extends Model
 {
-    private $genres = [
-        [
-            'name' => 'Fiksi',
-            'description' => 'Cerita yang berasal dari imajinasi penulis.'
-        ],
-        [
-            'name' => 'Non-Fiksi',
-            'description' => 'Buku yang berdasarkan fakta dan kejadian nyata.'
-        ],
-        [
-            'name' => 'Petualangan',
-            'description' => 'Buku yang mengisahkan perjalanan dan eksplorasi.'
-        ],
-        [
-            'name' => 'Motivasi',
-            'description' => 'Buku yang memberikan semangat hidup dan inspirasi.'
-        ],
-        [
-            'name' => 'Fantasi',
-            'description' => 'Buku yang berisi dunia khayalan dengan unsur magis.'
-        ],
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'description',
     ];
 
-    public function getGenres() {
-        return $this->genres;
+    public function books()
+    {
+        return $this->hasMany(Book::class);
     }
 }
