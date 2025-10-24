@@ -19,23 +19,27 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:api');
 
 // ==============================
+// 🆓 ROUTE PUBLIK
+// ==============================
+Route::get('/books', [BookController::class, 'index']);
+Route::get('/authors', [AuthorController::class, 'index']);
+Route::get('/genres', [GenreController::class, 'index']);
+
+// ==============================
 // 📦 ROUTE UNTUK CUSTOMER LOGIN
 // ==============================
 Route::middleware(['auth:api'])->group(function () {
-    // Customer boleh: Create, Update, dan Show
-    Route::apiResource('/books', BookController::class)->only(['store', 'update', 'show']);
+    Route::apiResource('/books', BookController::class)->only([ 'show']);
     Route::apiResource('/transactions', TransactionController::class)->only(['store', 'show']);
-
-    // Customer juga bisa lihat data relasi (author & genre)
-    Route::apiResource('/authors', AuthorController::class)->only(['index', 'show']);
-    Route::apiResource('/genres', GenreController::class)->only(['index', 'show']);
+    Route::apiResource('/authors', AuthorController::class)->only(['show']);
+    Route::apiResource('/genres', GenreController::class)->only(['show']);
 });
 
 // ==============================
 // 🧑‍💼 ROUTE UNTUK ADMIN
 // ==============================
 Route::middleware(['auth:api', 'role:admin'])->group(function () {
-    // Admin boleh Read All dan Destroy
-    Route::apiResource('/books', BookController::class)->only(['index', 'destroy']);
     Route::apiResource('/transactions', TransactionController::class)->only(['index', 'destroy']);
 });
+
+Route::apiResource('/books', BookController::class)->only(['store', 'update,', 'destroy']);
