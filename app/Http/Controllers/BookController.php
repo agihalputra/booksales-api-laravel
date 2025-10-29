@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class BookController extends Controller
 {
-    // 🔹 Menampilkan semua buku beserta relasi author & genre
+    /** 🔹 Tampilkan semua buku */
     public function index()
     {
         $books = Book::with('author', 'genre')->get();
@@ -21,6 +21,13 @@ class BookController extends Controller
             ], 200);
         }
 
+        $books->map(function ($book) {
+            if ($book->cover_photo) {
+                $book->cover_photo = asset('storage/books/' . $book->cover_photo);
+            }
+            return $book;
+        });
+
         return response()->json([
             "success" => true,
             "message" => "Get all resources",
@@ -28,7 +35,7 @@ class BookController extends Controller
         ], 200);
     }
 
-    // 🔹 Menampilkan detail buku berdasarkan ID beserta relasi
+    /** 🔹 Detail buku */
     public function show(string $id)
     {
         $book = Book::with('author', 'genre')->find($id);
@@ -40,6 +47,10 @@ class BookController extends Controller
             ], 404);
         }
 
+        if ($book->cover_photo) {
+            $book->cover_photo = asset('storage/books/' . $book->cover_photo);
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Get detail resource',
@@ -47,7 +58,7 @@ class BookController extends Controller
         ], 200);
     }
 
-    // 🔹 Menambahkan data buku baru
+    /** 🔹 Tambah buku baru */
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -67,11 +78,10 @@ class BookController extends Controller
             ], 422);
         }
 
-        // Upload gambar ke storage
+        // Simpan cover ke folder storage/app/public/books
         $image = $request->file('cover_photo');
         $image->store('books', 'public');
 
-        // Simpan ke database
         $book = Book::create([
             'title' => $request->title,
             'description' => $request->description,
@@ -89,8 +99,8 @@ class BookController extends Controller
         ], 201);
     }
 
-    // 🔹 Mengupdate data buku
-    public function update(string $id, Request $request)
+    /** 🔹 Update buku */
+    public function update(Request $request, string $id)
     {
         $book = Book::find($id);
 
@@ -118,30 +128,28 @@ class BookController extends Controller
             ], 422);
         }
 
-        $data = [
-            'title' => $request->title,
-            'description' => $request->description,
-            'price' => $request->price,
-            'stock' => $request->stock,
-            'genre_id' => $request->genre_id,
-            'author_id' => $request->author_id,
-        ];
+        // Update data utama
+        $book->title = $request->title;
+        $book->description = $request->description;
+        $book->price = $request->price;
+        $book->stock = $request->stock;
+        $book->genre_id = $request->genre_id;
+        $book->author_id = $request->author_id;
 
-        // Jika ada file baru diupload
+        // 🔄 Jika ada upload cover baru
         if ($request->hasFile('cover_photo')) {
-            $image = $request->file('cover_photo');
-            $image->store('books', 'public');
-
-            // Hapus file lama
+            // Hapus file lama jika ada
             if ($book->cover_photo && Storage::disk('public')->exists('books/' . $book->cover_photo)) {
                 Storage::disk('public')->delete('books/' . $book->cover_photo);
             }
 
-            $data['cover_photo'] = $image->hashName();
+            // Simpan file baru
+            $image = $request->file('cover_photo');
+            $image->store('books', 'public');
+            $book->cover_photo = $image->hashName();
         }
 
-        // Update data buku
-        $book->update($data);
+        $book->save();
 
         return response()->json([
             'success' => true,
@@ -150,7 +158,7 @@ class BookController extends Controller
         ], 200);
     }
 
-    // 🔹 Menghapus buku dan file cover_photo dari storage
+    /** 🔹 Hapus buku */
     public function destroy(string $id)
     {
         $book = Book::find($id);
@@ -162,17 +170,16 @@ class BookController extends Controller
             ], 404);
         }
 
-        // Hapus file cover jika ada
+        // Hapus cover lama
         if ($book->cover_photo && Storage::disk('public')->exists('books/' . $book->cover_photo)) {
             Storage::disk('public')->delete('books/' . $book->cover_photo);
         }
 
-        // Hapus data buku dari database
         $book->delete();
 
         return response()->json([
             'success' => true,
             'message' => 'Delete resource successfully'
-        ]);
+        ], 200);
     }
 }
