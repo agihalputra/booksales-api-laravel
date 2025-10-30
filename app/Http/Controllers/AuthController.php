@@ -51,29 +51,49 @@ class AuthController extends Controller
         //1. Setup validator
         $validator = Validator::make($request->all(), [
             'email'=> 'required|email',
-            'password'=>['required'],
+            'password'=> ['required'],
         ]);
+
         //2. Cek validator
         if ($validator->fails()) {
-            return response()->json($validator->errors(),422);
+            return response()->json($validator->errors(), 422);
         }
-        //3. Get kredensial dari request
-        $credentials = $request->only('email','password');
-        //4. Cek isFailed
-        if (!$token = auth()->guard('api')->attempt($credentials)) {
+
+        try {
+            //3. Get kredensial dari request
+            $credentials = $request->only('email', 'password');
+
+            //4. Cek login gagal
+            if (!$token = auth()->guard('api')->attempt($credentials)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Email atau Password anda salah!'
+                ], 401);
+            }
+
+            //5. Cek login berhasil
             return response()->json([
-                'success'=> false,
-                'message'=> 'your email or password is incorrect'
-            ],401);
-        }
-        //5. Cek isSucces
-        return response()->json([
-            'success'=> true,
-            'message'=> 'Login successfully',
-            'user' => auth()->guard('api')->user(),
-            'token'=> $token,
+                'success' => true,
+                'message' => 'Login berhasil!',
+                'user' => auth()->guard('api')->user(),
+                'token' => $token,
             ], 200);
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Jika error berasal dari database (misalnya MySQL mati)
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan pada koneksi database. Silakan coba lagi nanti.'
+            ], 500);
+        } catch (\Exception $e) {
+            // Error umum lainnya
+            return response()->json([
+                'success' => false,
+                'message' => 'Email atau Password anda salah!'
+            ], 500);
+        }
     }
+
 
     public function logout(Request $request) {
         //try
