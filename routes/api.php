@@ -20,7 +20,16 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 // ==============================
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:api');
+
+// ==============================
+// 🔑 User authenticated customer
+// ==============================
+Route::middleware(['auth:api'])->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::post('/transactions', [TransactionController::class, 'store']); // buat transaksi
+    Route::get('/transactions/{id}', [TransactionController::class, 'show']); // lihat detail transaksi
+});
 
 // ==============================
 // 🆓 ROUTE PUBLIK
